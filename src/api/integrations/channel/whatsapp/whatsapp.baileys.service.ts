@@ -4109,6 +4109,38 @@ export class BaileysStartupService extends ChannelStartupService {
     }
   }
 
+  // Horos: a chave de sincronização (app state) pode faltar na sessão salva (antes ficava em arquivo dentro
+  // do contêiner e sumia a cada deploy). Pede a chave ao celular, como o WhatsApp Web faz, e espera chegar.
+  private async ensureAppStateKey() {
+    const keyId = this.client.authState?.creds?.myAppStateKeyId;
+    if (!keyId) return;
+    const has = async () => {
+      const got = await this.client.authState.keys.get('app-state-sync-key', [keyId]);
+      return !!got?.[keyId];
+    };
+    if (await has()) return;
+
+    const meJid = jidNormalizedUser(this.client.authState.creds.me?.id);
+    await this.client.relayMessage(
+      meJid,
+      {
+        protocolMessage: {
+          type: proto.Message.ProtocolMessage.Type.APP_STATE_SYNC_KEY_REQUEST,
+          appStateSyncKeyRequest: { keyIds: [{ keyId: Buffer.from(keyId, 'base64') }] },
+        },
+      },
+      {
+        additionalAttributes: { category: 'peer', push_priority: 'high_force' },
+        additionalNodes: [{ tag: 'meta', attrs: { appdata: 'default' } }],
+      },
+    );
+
+    for (let i = 0; i < 20; i++) {
+      await new Promise((r) => setTimeout(r, 500));
+      if (await has()) return;
+    }
+  }
+
   // Horos: grava o contato na agenda do celular (sincroniza com o aparelho principal)
   public async saveContact(data: SaveContactDto) {
     try {
@@ -4119,6 +4151,7 @@ export class BaileysStartupService extends ChannelStartupService {
       }
 
       const fullName = data.fullName.trim();
+      await this.ensureAppStateKey();
       await this.client.addOrEditContact(isWA.jid, {
         fullName,
         firstName: fullName.split(/\s+/)[0],
