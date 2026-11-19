@@ -11,6 +11,7 @@ import {
   ProfilePictureDto,
   ProfileStatusDto,
   ReadMessageDto,
+  SaveContactDto,
   SendPresenceDto,
   UpdateMessageDto,
   WhatsAppNumberDto,
@@ -34,6 +35,7 @@ import {
   profileSchema,
   profileStatusSchema,
   readMessageSchema,
+  saveContactSchema,
   updateMessageSchema,
   whatsappNumberSchema,
 } from '@validate/validate.schema';
@@ -147,6 +149,16 @@ export class ChatRouter extends RouterBroker {
           schema: blockUserSchema,
           ClassRef: BlockUserDto,
           execute: (instance, data) => chatController.blockUser(instance, data),
+        });
+
+        return res.status(HttpStatus.CREATED).json(response);
+      })
+      .post(this.routerPath('saveContact'), ...guards, async (req, res) => {
+        const response = await this.dataValidate<SaveContactDto>({
+          request: req,
+          schema: saveContactSchema,
+          ClassRef: SaveContactDto,
+          execute: (instance, data) => chatController.saveContact(instance, data),
         });
 
         return res.status(HttpStatus.CREATED).json(response);

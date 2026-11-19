@@ -10,6 +10,7 @@ import {
   ProfilePictureDto,
   ProfileStatusDto,
   ReadMessageDto,
+  SaveContactDto,
   SendPresenceDto,
   UpdateMessageDto,
   WhatsAppNumberDto,
@@ -108,6 +109,10 @@ export class ChatController {
 
   public async updateMessage({ instanceName }: InstanceDto, data: UpdateMessageDto) {
     return await this.waMonitor.waInstances[instanceName].updateMessage(data);
+  }
+
+  public async saveContact({ instanceName }: InstanceDto, data: SaveContactDto) {
+    return await this.waMonitor.waInstances[instanceName].saveContact(data);
   }
 
   public async blockUser({ instanceName }: InstanceDto, data: BlockUserDto) {

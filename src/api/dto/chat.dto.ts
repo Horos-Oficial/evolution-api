@@ -123,6 +123,12 @@ export class UpdateMessageDto extends Metadata {
   text: string;
 }
 
+// Horos: salva/renomeia o contato na agenda do celular (Baileys addOrEditContact)
+export class SaveContactDto {
+  number: string;
+  fullName: string;
+}
+
 export class BlockUserDto {
   number: string;
   status: 'block' | 'unblock';

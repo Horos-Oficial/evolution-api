@@ -11,6 +11,7 @@ import {
   OnWhatsAppDto,
   PrivacySettingDto,
   ReadMessageDto,
+  SaveContactDto,
   SendPresenceDto,
   UpdateMessageDto,
   WhatsAppNumberDto,
@@ -4105,6 +4106,29 @@ export class BaileysStartupService extends ChannelStartupService {
       return { update: 'success' };
     } catch (error) {
       throw new InternalServerErrorException('Error removing profile picture', error.toString());
+    }
+  }
+
+  // Horos: grava o contato na agenda do celular (sincroniza com o aparelho principal)
+  public async saveContact(data: SaveContactDto) {
+    try {
+      const isWA = (await this.whatsappNumber({ numbers: [data.number] }))?.shift();
+
+      if (!isWA?.exists || isJidGroup(isWA.jid)) {
+        throw new BadRequestException(isWA);
+      }
+
+      const fullName = data.fullName.trim();
+      await this.client.addOrEditContact(isWA.jid, {
+        fullName,
+        firstName: fullName.split(/\s+/)[0],
+        saveOnPrimaryAddressbook: true,
+      });
+
+      return { saved: 'success', jid: isWA.jid };
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+      throw new InternalServerErrorException('Error saving contact', error.toString());
     }
   }
 

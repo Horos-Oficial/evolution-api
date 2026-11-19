@@ -174,6 +174,17 @@ export const presenceSchema: JSONSchema7 = {
   required: ['number', 'presence', 'delay'],
 };
 
+export const saveContactSchema: JSONSchema7 = {
+  $id: v4(),
+  type: 'object',
+  properties: {
+    number: { type: 'string' },
+    fullName: { type: 'string', minLength: 1, maxLength: 120 },
+  },
+  required: ['number', 'fullName'],
+  ...isNotEmpty('number', 'fullName'),
+};
+
 export const blockUserSchema: JSONSchema7 = {
   $id: v4(),
   type: 'object',
